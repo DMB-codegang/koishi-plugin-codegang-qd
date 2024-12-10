@@ -14,8 +14,15 @@ jobs:
         run: yarn
       - name: 编译
         run: yarn build
-      - name: 上传
+      - name: 上传到GitHub
         uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: ./lib
+      - name: 发布到npm
+        if: success()
+        run: |
+          npm ci  # 安装依赖
+          npm publish  # 发布到 npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
