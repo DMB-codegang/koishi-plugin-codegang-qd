@@ -14,4 +14,8 @@ jobs:
         run: yarn
       - name: Build
         run: yarn build
-      - run: tree
+      - name: 上传到action以供下载
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: ./lib
