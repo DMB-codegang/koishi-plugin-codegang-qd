@@ -8,6 +8,8 @@ jobs:
     steps:
     - name: 安装koishi
       run: npm install koishi
+    
+    - run: ls
 
     - name: 引入源码
       run: npm run clone DMB-codegang/koishi-plugin-codegang-qd
