@@ -1,0 +1,36 @@
+{
+  "name": "koishi-plugin-codegang-qd",
+  "description": "codegang签到插件",
+  "version": "1.0.18",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "contributors": [
+    "小舍 <maimaidx11@gmail.com>"
+  ],
+  "license": "GPL-3.0-only",
+  "scripts": {},
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {
+    "koishi": "^4.18.0"
+  },
+  "koishi": {
+    "description": {
+      "zh": "目前仅个人使用\ncookie是网易云的cookie"
+    },
+    "service": {
+      "required": [
+        "database",
+        "http"
+      ]
+    }
+  }
+}
