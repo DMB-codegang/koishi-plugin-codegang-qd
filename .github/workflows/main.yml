@@ -22,7 +22,6 @@ jobs:
       - name: 发布到npm
         if: success()
         run: |
-          npm ci  # 安装依赖
-          npm publish  # 发布到 npm
+          yarn publish --non-interactive  # 使用 yarn 来发布到 npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
