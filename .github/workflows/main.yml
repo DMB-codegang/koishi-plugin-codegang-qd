@@ -10,9 +10,10 @@ jobs:
       run: npm install koishi
     
     - run: ls
+    - run: cat package.json
 
     - name: 引入源码
-      run: koishi-scripts clone DMB-codegang/koishi-plugin-codegang-qd
+      run: npm koishi-scripts clone DMB-codegang/koishi-plugin-codegang-qd
 
     - name: 项目打包
-      run: yakumo build codegang-qd
+      run: npm yakumo build codegang-qd
