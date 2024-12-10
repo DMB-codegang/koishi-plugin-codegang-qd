@@ -7,7 +7,7 @@ jobs:
     
     steps:
     - name: 安装koishi
-      run: npm install koishi
+      run: npm init koishi@latest
     
     - run: ls
     - run: cat package.json
