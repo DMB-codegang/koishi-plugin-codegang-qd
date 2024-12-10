@@ -24,4 +24,4 @@ jobs:
         run: |
           yarn publish --non-interactive  # 使用 yarn 来发布到 npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
