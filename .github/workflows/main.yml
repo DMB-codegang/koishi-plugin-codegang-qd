@@ -6,11 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: 读取仓库
-      uses: actions/checkout@v4
+    - name: 安装koishi
+      run: npm install koishi
 
-    - name: 安装依赖
-      run: npm install
+    - name: 引入源码
+      run: npm run clone DMB-codegang/koishi-plugin-codegang-qd
 
     - name: 项目打包
       run: npm run build codegang-qd
