@@ -1,2 +1,1 @@
 # koishi-plugin-codegang-qd
-
