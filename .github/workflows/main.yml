@@ -2,11 +2,28 @@
 on: push
 
 jobs:
-  job1:
-    runs-on: actions/setup-node@v4.1.0
+  lint:
+    runs-on: ubuntu-latest
+
     steps:
-    - run: pwd
-  job2:
-    runs-on: actions/setup-node@v4.1.0
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+      - name: Install
+        run: yarn
+      - name: Lint
+        run: yarn lint
+
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-    - run: node --version
+      - name: Check out
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+      - name: Install
+        run: yarn
+      - name: Build
+        run: yarn build
