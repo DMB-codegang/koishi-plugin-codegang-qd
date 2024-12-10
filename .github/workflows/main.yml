@@ -6,16 +6,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out
+      - name: 导入源码
         uses: actions/checkout@v4
-      - name: Setup Node
+      - name: 安装Node
         uses: actions/setup-node@v4
-      - name: Install
+      - name: 安装依赖
         run: yarn
-      - name: Build
+      - name: 编译
         run: yarn build
-      - name: 上传到action以供下载
-        uses: actions/upload-artifact@v3
+      - name: 上传
+        uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: ./lib
