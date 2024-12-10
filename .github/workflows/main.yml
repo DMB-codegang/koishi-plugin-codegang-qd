@@ -1,10 +1,12 @@
+
 on: push
 
 jobs:
   job1:
+    runs-on: actions/setup-node@v4.1.0
     steps:
-    -run: pwd
-    -run: ls
+    - run: pwd
   job2:
-    step:
-    -run: node --version
+    runs-on: actions/setup-node@v4.1.0
+    steps:
+    - run: node --version
