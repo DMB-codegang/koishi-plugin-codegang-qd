@@ -12,7 +12,7 @@ jobs:
     - run: ls
 
     - name: 引入源码
-      run: npm run clone DMB-codegang/koishi-plugin-codegang-qd
+      run: koishi-scripts clone DMB-codegang/koishi-plugin-codegang-qd
 
     - name: 项目打包
-      run: npm run build codegang-qd
+      run: yakumo build codegang-qd
