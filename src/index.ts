@@ -231,7 +231,7 @@ export async function apply(ctx: Context, cfg: Config) {
     let img = h('img', { src: 'https://t.alcy.cc/pc/' });
     let fortune = await getfortune(ctx, session.userId);
     let hitokoto = await getHitokoto(ctx);
-    session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
+    session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n今天是我妈妈的生日哦\n${img}`);
   });
 
   ctx.command('积分商城')

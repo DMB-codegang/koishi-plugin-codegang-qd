@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-codegang-qd",
   "description": "codegang签到插件",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
