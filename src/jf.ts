@@ -5,7 +5,7 @@ export class jf {
     private cfg: Config;
     private database: any;
     constructor() {}
-    public init(cfg: Config, database: any) {
+    public init(database: any,cfg: Config) {
         this.cfg = cfg;
         this.database = database;
     }

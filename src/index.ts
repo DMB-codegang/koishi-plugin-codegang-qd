@@ -1,5 +1,5 @@
 import { } from 'koishi-plugin-mail'
-import { Context, h } from 'koishi'
+import { Context, h, sleep } from 'koishi'
 
 import { jf } from './jf'
 import { Ncm } from './ncm'
@@ -27,7 +27,6 @@ export interface codegang_jf {
   jf: number
   time: Date
 }
-
 export interface codegang_user_set {
   id: number
   userid: string
@@ -38,7 +37,6 @@ async function getHitokoto(ctx: Context) {
   let row = await ctx.http.get('https://v1.hitokoto.cn')
   return row.hitokoto + '——' + row.from;
 }
-
 async function getfortune(ctx: Context, userid: string) {
   try {
     let row = await ctx.http.get(`https://api.fanlisky.cn/api/qr-fortune/get/${userid}`);
@@ -65,18 +63,14 @@ export async function apply(ctx: Context, cfg: Config) {
     userid: 'string',
     set: 'json'
   }, { autoInc: true })
-  dajf.init(cfg, ctx.database);
+  dajf.init(ctx.database, cfg);
   ncm.init(ctx.http, cfg);
+  //初始化数据库和class
 
-  ctx.command('我的积分')
-    .alias('查询积分')
-    .alias('积分查询')
-    .alias('积分')
-    .alias('jf')
-    .action(async ({ session }) => {
-      console.log(session.userId);
-      session.send(`你的积分是${await dajf.get(session.userId)}`);
-    })
+  ctx.command('我的积分').alias('查询积分').alias('积分查询').alias('积分').alias('jf').action(async ({ session }) => {
+    sleep(cfg.delay);
+    session.send(`你的积分是${await dajf.get(session.userId)}`);
+  })
 
   ctx.command('签到').alias('qd').action(async ({ session }) => {
     if (cfg.isdev) { return '开发版无法签到'; }
@@ -105,15 +99,15 @@ export async function apply(ctx: Context, cfg: Config) {
     session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
   });
 
-  ctx.command('积分商城')
-    .alias('积分商店')
-    .action(async ({ session }) => {
+  ctx.command('积分商城').alias('积分商店').action(async ({ session }) => {
+      sleep(cfg.delay);
       session.send(cfg.menu);
     });
 
   ctx.command('兑换 <thing> [arg1]').action(async ({ session }, thing, arg1) => {
     switch (true) {
       case thing == null: {
+        sleep(cfg.delay);
         session.send("请输入要兑换的商品");
         break;
       }
@@ -121,6 +115,7 @@ export async function apply(ctx: Context, cfg: Config) {
         const price = 2;
         let jf = await dajf.get(session.userId);
         if (jf < price) {
+          sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
@@ -132,6 +127,7 @@ export async function apply(ctx: Context, cfg: Config) {
         const price = 15;
         let jf = await dajf.get(session.userId);
         if (jf < price) {
+          sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
@@ -143,6 +139,7 @@ export async function apply(ctx: Context, cfg: Config) {
         const price = 25;
         let jf = await dajf.get(session.userId);
         if (jf < price) {
+          sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
@@ -161,15 +158,18 @@ export async function apply(ctx: Context, cfg: Config) {
         let messageid: Array<string>;
         let jf = await dajf.get(session.userId);
         if (jf < price) {
+          sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
         let keywords = arg1;
         if (!keywords) {
-          messageid = await session.send('请在60秒内发送要搜索的内容');
+          let hotSearch = await ncm.getHotSearch();
+          sleep(cfg.delay);
+          messageid = await session.send(`请在60秒内发送要搜索的内容\n当前热搜：\n` + hotSearch.map((item, index) => `${item.first} `).join(''));
           keywords = await session.prompt(60000)
-          if (!keywords) {
-            session.send('响应已超时')
+          if (!keywords || keywords == 'exit') {
+            session.send('已退出');
             break;
           }
           await session.bot.deleteMessage(session.channelId, messageid[0]);
@@ -203,6 +203,7 @@ export async function apply(ctx: Context, cfg: Config) {
             }
           } else if (choose == 'exit') {
             session.bot.deleteMessage(session.channelId, messageid[0]);
+            sleep(cfg.delay);
             return '已退出';
           } else if (!choose) {
             session.bot.deleteMessage(session.channelId, messageid[0]);
@@ -226,14 +227,17 @@ export async function apply(ctx: Context, cfg: Config) {
                 session.send(`<video src="${song.mv}"/>`);
               }
             } else {
-              console.log(song);
-              music = await ncm.getmusic(song.id, cfg.cookie);
+              music = await ncm.getmusic(song.id, cfg.level);
               session.send(`<audio src="${music.url}"/>`);
               if (song.mv != 0) {
-                let mv = await ncm.getmv(song.mv, cfg.cookie);
+                let mv = await ncm.getmv(song.mv);
                 session.send(`<video src="${mv.url}"/>`);
               } else {
-                session.send(`<file title="${music.name}.flac" src="${music.url}" poster="${song.al.picUrl}"/>`);
+                if (cfg.level == 'standard' || cfg.level == 'higher' || cfg.level == 'exhigh') {
+                  session.send(`<file title="${song.name}.mp3" src="${music.url}" poster="${song.al.picUrl}"/>`);
+                } else {
+                  session.send(`<file title="${song.name}.flac" src="${music.url}" poster="${song.al.picUrl}"/>`);
+                }
               }
             }
             dajf.reduce(session.userId, price);

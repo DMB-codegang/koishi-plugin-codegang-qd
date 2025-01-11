@@ -33,13 +33,26 @@ export class Ncm {
         }
     }
 
-    async getmusic(id: string, cookie: string) {
-        let row = await this.http.get(`${this.cfg.ncmapi}/song/url?id=${id}&cookie=${cookie}`);
+    async getmusic(id: string, level: string) {
+        console.log(`${this.cfg.ncmapi}/song/url/v1?id=${id}&level=${level}&cookie=${this.cfg.cookie}`);
+        let row = await this.http.get(`${this.cfg.ncmapi}/song/url?id=${id}&level=${level}&cookie=${this.cfg.cookie}`);
         return row.data[0];
     }
 
-    async getmv(id: string, cookie: string) {
-        let row = await this.http.get(`${this.cfg.ncmapi}/mv/url?id=${id}&cookie=${cookie}`);
+    async getmv(id: string) {
+        let row = await this.http.get(`${this.cfg.ncmapi}/mv/url?id=${id}&cookie=${this.cfg.cookie}`);
         return row.data;
+    }
+
+    async getHotSearch() {
+        try {
+            let row = await this.http.get(`${this.cfg.ncmapi}/search/hot`);
+            if (row.code != 200) {
+                return { error: 'Failed to fetch hot search results' };
+            }
+            return row.result.hots;
+        } catch (error) {
+            return { error: 'Failed to fetch hot search results' };
+        }
     }
 }
