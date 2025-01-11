@@ -1,5 +1,9 @@
 import { } from 'koishi-plugin-mail'
-import { Context, Schema, h } from 'koishi'
+import { Context, h } from 'koishi'
+
+import { jf } from './jf'
+import { Ncm } from './ncm'
+import { Config } from './config'
 
 export const name = 'codegang-qd'
 export const description = 'Codegang签到插件'
@@ -8,24 +12,10 @@ export const inject = {
   required: ['database', 'http'],
   optional: ['mail'],
 }
+export * from './config'
 
-export interface Config {
-  minplusnum: number
-  maxplusnum: number
-  firstplusnum: number
-  menu: string
-  limit: number
-  cookie: string
-}
-
-export const Config: Schema<Config> = Schema.object({
-  minplusnum: Schema.number().default(1).description('每次签到的最小加分数量').required(),
-  maxplusnum: Schema.number().default(10).description('每次签到最大加分数量').required(),
-  firstplusnum: Schema.number().default(20).description('首次签到的额外加分数量'),
-  menu: Schema.string().role('textarea', { rows: [6, 3] }),
-  limit: Schema.number().default(5).description('网易云单页搜索结果数量'),
-  cookie: Schema.string().role('textarea', { rows: [4, 3] }).description('网易云音乐cookie'),
-})
+const ncm = new Ncm();
+const dajf = new jf();
 
 declare module 'koishi' {
   interface Tables { codegang_jf: codegang_jf, codegang_user_set: codegang_user_set }
@@ -44,149 +34,26 @@ export interface codegang_user_set {
   set: any
 }
 
-class jf {
-  database: any;
-  constructor(database: any) {
-    this.database = database;
-  }
-
-  async get(userid: string) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0) {
-      return 0;
-    } else {
-      return row[0].jf;
-    }
-  }
-
-  async set(userid: string, jf: number) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0) {
-      await this.database.create('codegang_jf', { userid: userid, jf: jf });
-    } else {
-      await this.database.set('codegang_jf', { userid: userid }, { jf: jf });
-    }
-  }
-
-  async add(userid: string, jf: number) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0) {
-      await this.database.create('codegang_jf', { userid: userid, jf: jf });
-    } else {
-      await this.database.set('codegang_jf', { userid: userid }, { jf: row[0].jf + jf });
-    }
-  }
-
-  async reduce(userid: string, jf: number) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0) {
-      return false;
-    } else {
-      if (row[0].jf < jf) {
-        return false;
-      } else {
-        await this.database.set('codegang_jf', { userid: userid }, { jf: row[0].jf - jf });
-        return true;
-      }
-    }
-  }
-
-  async updatetime(userid: string) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0) {
-      return false;
-    } else {
-      await this.database.set('codegang_jf', { userid: userid }, { time: new Date() });
-      return true;
-    }
-  }
-
-  async chacktime(userid: string) {
-    let row = await this.database.get('codegang_jf', { userid: userid });
-    if (row.length == 0 || row[0].time == null) {
-      return 0;//新用户
-    } else {
-      let lasttime = row[0].time;
-      let nowtime = new Date();
-      if (!(lasttime == null)) {
-        lasttime = new Date(lasttime);
-      }
-      if (lasttime.getDate() == nowtime.getDate()) {
-        return lasttime;//已签到
-      } else {
-        return 1;//未签到
-      }
-    }
-  }
-}
-
-class Ncm {
-  http: any;
-  cfg: Config;
-  constructor(http: any, cfg: Config) {
-    this.http = http;
-    this.cfg = cfg;
-  }
-
-  async search(keyword: string) {
-    try {
-      let row_1 = await this.http.get(`https://music.codegang.top/search.php?keyword=${keyword}`);
-      let search_songs_num = 25;
-      // 检查是否有结果
-      if (row_1.length != 0) {
-        search_songs_num = search_songs_num - row_1.length;
-      }
-      let row_2 = await this.http.get(`https://api.codegang.top/cloudsearch?limit=${search_songs_num}&keywords=${keyword}`);
-      // 合并两个结果
-      for (let i = 0; i < row_1.length; i++) {
-        if (row_1[i].from == '【codegang曲库】') {
-          row_1[i].name = row_1[i].from + row_1[i].name;
-        }
-      }
-      let row = row_1.concat(row_2.result.songs);
-      return row;
-    } catch (error) {
-      console.error(`Error fetching data: ${error.message}`);
-      // 根据需要返回一个适当的错误消息或处理逻辑
-      return { error: 'Failed to fetch search results' };
-    }
-  }
-
-  async getmusic(id: string, cookie: string) {
-    let row = await this.http.get('https://api.codegang.top/song/url?id=' + id + '&cookie=' + cookie);
-    return row.data[0];
-  }
-
-  async getmv(id: string, cookie: string) {
-    let row = await this.http.get('https://api.codegang.top/mv/url?id=' + id + '&cookie=' + cookie);
-    return row.data;
-  }
-}
-
 async function getHitokoto(ctx: Context) {
   let row = await ctx.http.get('https://v1.hitokoto.cn')
   return row.hitokoto + '——' + row.from;
 }
 
-
-
 async function getfortune(ctx: Context, userid: string) {
-  try{
+  try {
     let row = await ctx.http.get(`https://api.fanlisky.cn/api/qr-fortune/get/${userid}`);
     if (row.code == 200) {
       return `今日运势：${row.data.fortuneSummary}${row.data.luckyStar}\n${row.data.signText}\n${row.data.unSignText}`;
     } else {
       return `运势获取失败……${row.code}\n${row.msg}`;
     }
-  }catch(err){
+  } catch (err) {
     console.error(`Error fetching fortune: ${err.message}`);
     return '运势获取失败……';
   }
 }
 
 export async function apply(ctx: Context, cfg: Config) {
-  const ncm = new Ncm(ctx.http, cfg);
-  const dajf = new jf(ctx.database);
   ctx.model.extend('codegang_jf', {
     id: 'unsigned',
     userid: 'string',
@@ -198,6 +65,8 @@ export async function apply(ctx: Context, cfg: Config) {
     userid: 'string',
     set: 'json'
   }, { autoInc: true })
+  dajf.init(cfg, ctx.database);
+  ncm.init(ctx.http, cfg);
 
   ctx.command('我的积分')
     .alias('查询积分')
@@ -205,10 +74,12 @@ export async function apply(ctx: Context, cfg: Config) {
     .alias('积分')
     .alias('jf')
     .action(async ({ session }) => {
+      console.log(session.userId);
       session.send(`你的积分是${await dajf.get(session.userId)}`);
     })
 
   ctx.command('签到').alias('qd').action(async ({ session }) => {
+    if (cfg.isdev) { return '开发版无法签到'; }
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
     let mail = (ctx.mail && ((await ctx.mail.getuserMailNum(session.userId)) != 0)) ? '\n✉️你有新的邮件哦' : '';
@@ -231,7 +102,7 @@ export async function apply(ctx: Context, cfg: Config) {
     let img = h('img', { src: 'https://t.alcy.cc/pc/' });
     let fortune = await getfortune(ctx, session.userId);
     let hitokoto = await getHitokoto(ctx);
-    session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n今天是我妈妈的生日哦\n${img}`);
+    session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
   });
 
   ctx.command('积分商城')
@@ -308,24 +179,16 @@ export async function apply(ctx: Context, cfg: Config) {
         let choose;
         let offset = 0
         while (true) {
-          // for (let song of search) {
-          //   if (song.from == "【codegang曲库】") {
-          //     msg += `${ordinal}. ${song.name}——${song.art}\n<img src="${song.img}"/>\n`;
-          //   } else {
-          //     msg += `${ordinal}. ${song.name}——${song.ar[0].name}\n${song.al.name}<img src="${song.al.picUrl}?param=200y200"/>\n`;
-          //   }
-          //   ordinal++;
-          // }
           const musicnum = 30;
           msg = '';
           for (let i = 0; i < 5; i++) {
-            if (search[offset + i].from == "【codegang曲库】") {
-              msg += `${offset + i + 1}. ${search[offset + i].name}——${search[offset + i].art}\n<img src="${search[offset + i].img}"/>\n`;
-            } else {
-              msg += `${offset + i + 1}. ${search[offset + i].name}——${search[offset + i].ar[0].name}\n${search[offset + i].al.name}<img src="${search[offset + i].al.picUrl}?param=200y200"/>\n`;
-            }
+            // if (search[offset + i].from == "【codegang曲库】") {
+            // msg += `${offset + i + 1}. ${search[offset + i].name}——${search[offset + i].art}\n<img src="${search[offset + i].img}"/>\n`;
+            // } else {
+            msg += `${offset + i + 1}. ${search[offset + i].name}——${search[offset + i].ar[0].name}\n${search[offset + i].al.name}<img src="${search[offset + i].al.picUrl}?param=200y200"/>\n`;
+            // }
           }
-          msg += '请输入你要兑换的歌曲序号，或输入up,next翻页exit退出';
+          msg += '请输入你要兑换的歌曲序号\n up,next翻页 exit退出';
           messageid = await session.send(msg);
           choose = await session.prompt(60000);
           if (choose == 'up') {
@@ -363,11 +226,14 @@ export async function apply(ctx: Context, cfg: Config) {
                 session.send(`<video src="${song.mv}"/>`);
               }
             } else {
+              console.log(song);
               music = await ncm.getmusic(song.id, cfg.cookie);
               session.send(`<audio src="${music.url}"/>`);
               if (song.mv != 0) {
                 let mv = await ncm.getmv(song.mv, cfg.cookie);
                 session.send(`<video src="${mv.url}"/>`);
+              } else {
+                session.send(`<file title="${music.name}.flac" src="${music.url}" poster="${song.al.picUrl}"/>`);
               }
             }
             dajf.reduce(session.userId, price);
