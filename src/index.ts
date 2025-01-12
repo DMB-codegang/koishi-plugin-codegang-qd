@@ -84,9 +84,9 @@ export async function apply(ctx: Context, cfg: Config) {
   });
 
   ctx.command('积分商城').alias('积分商店').action(async ({ session }) => {
-      sleep(cfg.delay);
-      session.send(cfg.menu);
-    });
+    sleep(cfg.delay);
+    session.send(cfg.menu);
+  });
 
   ctx.command('兑换 <thing> [arg1]').action(async ({ session }, thing, arg1) => {
     switch (true) {
