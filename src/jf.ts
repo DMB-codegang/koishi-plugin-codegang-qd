@@ -1,5 +1,6 @@
 import { Config } from './config';
 
+const database_name = 'codegang_jf';
 
 export class jf {
     private cfg: Config;
@@ -11,7 +12,7 @@ export class jf {
     }
 
     async get(userid: string) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if(this.cfg.isdev){return 999;}
       if (row.length == 0) {
         return 0;
@@ -22,49 +23,49 @@ export class jf {
     }
   
     async set(userid: string, jf: number) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if (row.length == 0) {
-        await this.database.create('codegang_jf', { userid: userid, jf: jf });
+        await this.database.create(database_name, { userid: userid, jf: jf });
       } else {
-        await this.database.set('codegang_jf', { userid: userid }, { jf: jf });
+        await this.database.set(database_name, { userid: userid }, { jf: jf });
       }
     }
   
     async add(userid: string, jf: number) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if (row.length == 0) {
-        await this.database.create('codegang_jf', { userid: userid, jf: jf });
+        await this.database.create(database_name, { userid: userid, jf: jf });
       } else {
-        await this.database.set('codegang_jf', { userid: userid }, { jf: row[0].jf + jf });
+        await this.database.set(database_name, { userid: userid }, { jf: row[0].jf + jf });
       }
     }
   
     async reduce(userid: string, jf: number) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if (row.length == 0) {
         return false;
       } else {
         if (row[0].jf < jf) {
           return false;
         } else {
-          await this.database.set('codegang_jf', { userid: userid }, { jf: row[0].jf - jf });
+          await this.database.set(database_name, { userid: userid }, { jf: row[0].jf - jf });
           return true;
         }
       }
     }
   
     async updatetime(userid: string) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if (row.length == 0) {
         return false;
       } else {
-        await this.database.set('codegang_jf', { userid: userid }, { time: new Date() });
+        await this.database.set(database_name, { userid: userid }, { time: new Date() });
         return true;
       }
     }
   
     async chacktime(userid: string) {
-      let row = await this.database.get('codegang_jf', { userid: userid });
+      let row = await this.database.get(database_name, { userid: userid });
       if (row.length == 0 || row[0].time == null) {
         return 0;//新用户
       } else {

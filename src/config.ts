@@ -5,6 +5,8 @@ export interface Config {
     minplusnum: number
     maxplusnum: number
     firstplusnum: number
+    picApi: string
+    setuApi: string
     menu: string
     ncmapi: string
     limit: number
@@ -21,6 +23,10 @@ export const Config: Schema<Config> = Schema.intersect([
         firstplusnum: Schema.number().default(20).description('首次签到的额外加分数量'),
         menu: Schema.string().role('textarea', { rows: [6, 3] }),
     }).description('基础配置'),
+    Schema.object({
+        picApi: Schema.string().default('').description('图片API地址'),
+        setuApi: Schema.string().default('').description('涩图API地址')
+    }).description('图片配置'),
     Schema.object({
         ncmapi: Schema.string().default("").description('网易云音乐API地址'),
         limit: Schema.number().default(5).description('网易云单页搜索结果数量'),

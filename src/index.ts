@@ -1,9 +1,10 @@
 import { } from 'koishi-plugin-mail'
-import { Context, h, sleep } from 'koishi'
+import { Context, h, sleep, Logger } from 'koishi'
 
 import { jf } from './jf'
 import { Ncm } from './ncm'
 import { Config } from './config'
+import { getHitokoto, getfortune } from './other'
 
 export const name = 'codegang-qd'
 export const description = 'Codegang签到插件'
@@ -16,6 +17,7 @@ export * from './config'
 
 const ncm = new Ncm();
 const dajf = new jf();
+const log = new Logger("@codegang/codegang-qd");
 
 declare module 'koishi' {
   interface Tables { codegang_jf: codegang_jf, codegang_user_set: codegang_user_set }
@@ -31,24 +33,6 @@ export interface codegang_user_set {
   id: number
   userid: string
   set: any
-}
-
-async function getHitokoto(ctx: Context) {
-  let row = await ctx.http.get('https://v1.hitokoto.cn')
-  return row.hitokoto + '——' + row.from;
-}
-async function getfortune(ctx: Context, userid: string) {
-  try {
-    let row = await ctx.http.get(`https://api.fanlisky.cn/api/qr-fortune/get/${userid}`);
-    if (row.code == 200) {
-      return `今日运势：${row.data.fortuneSummary}${row.data.luckyStar}\n${row.data.signText}\n${row.data.unSignText}`;
-    } else {
-      return `运势获取失败……${row.code}\n${row.msg}`;
-    }
-  } catch (err) {
-    console.error(`Error fetching fortune: ${err.message}`);
-    return '运势获取失败……';
-  }
 }
 
 export async function apply(ctx: Context, cfg: Config) {
@@ -94,8 +78,8 @@ export async function apply(ctx: Context, cfg: Config) {
     dajf.add(session.userId, upjf);
     dajf.updatetime(session.userId);
     let img = h('img', { src: 'https://t.alcy.cc/pc/' });
-    let fortune = await getfortune(ctx, session.userId);
-    let hitokoto = await getHitokoto(ctx);
+    let fortune = await getfortune(ctx.http, session.userId);
+    let hitokoto = await getHitokoto(ctx.http);
     session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
   });
 
@@ -120,7 +104,7 @@ export async function apply(ctx: Context, cfg: Config) {
           break;
         }
         dajf.reduce(session.userId, price);
-        session.send(await getHitokoto(ctx));
+        session.send(await getHitokoto(ctx.http));
         break;
       }
       case thing == "2" || thing == "二次元": {
