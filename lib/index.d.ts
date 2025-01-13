@@ -1,4 +1,5 @@
-import { Context, Schema } from 'koishi';
+import { Context } from 'koishi';
+import { Config } from './config';
 export declare const name = "codegang-qd";
 export declare const description = "Codegang\u7B7E\u5230\u63D2\u4EF6";
 export declare const author = "\u5C0F\u820D";
@@ -6,15 +7,7 @@ export declare const inject: {
     required: string[];
     optional: string[];
 };
-export interface Config {
-    minplusnum: number;
-    maxplusnum: number;
-    firstplusnum: number;
-    menu: string;
-    limit: number;
-    cookie: string;
-}
-export declare const Config: Schema<Config>;
+export * from './config';
 declare module 'koishi' {
     interface Tables {
         codegang_jf: codegang_jf;
