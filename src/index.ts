@@ -71,7 +71,7 @@ export async function apply(ctx: Context, cfg: Config) {
         break;
       }
       default: {
-        session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}${mail}`);
+        session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}\n${await getfortune(ctx.http, session.userId)}${mail}`);
         return;
       }
     }

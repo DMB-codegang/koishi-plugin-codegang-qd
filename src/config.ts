@@ -18,8 +18,8 @@ export interface Config {
 export const Config: Schema<Config> = Schema.intersect([
     Schema.object({
         delay: Schema.number().default(1000).description('回复延迟时间，降低风控风险'),
-        minplusnum: Schema.number().default(1).description('每次签到的最小加分数量').required(),
-        maxplusnum: Schema.number().default(10).description('每次签到最大加分数量').required(),
+        minplusnum: Schema.number().default(1).description('每次签到的最小加分数量'),
+        maxplusnum: Schema.number().default(10).description('每次签到最大加分数量'),
         firstplusnum: Schema.number().default(20).description('首次签到的额外加分数量'),
         menu: Schema.string().role('textarea', { rows: [6, 3] }),
     }).description('基础配置'),
