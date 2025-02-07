@@ -39,7 +39,8 @@ export async function getfortune(http: HTTP, userid: string) {
     // }
 
     try {
-        let row = await http.get(`http://qq.link114.cn/${userid}`);
+        //将userid，今天年份，月份，日期拼接成url
+        let row = await http.get(`http://qq.link114.cn/${userid}${new Date().getFullYear()}${new Date().getMonth()+1}${new Date().getDate()}`);
         if (row) {
             //取出内容的class="listpage_content"div内的内容
             row = row.match(/<div class="listpage_content">([\s\S]*?)<\/div>/)[1];
