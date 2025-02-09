@@ -20,36 +20,38 @@ const dajf = new jf();
 const log = new Logger("@codegang/codegang-qd");
 
 declare module 'koishi' {
-  interface Tables { codegang_jf: codegang_jf, codegang_user_set: codegang_user_set }
+  interface Tables { codegang_jf: codegang_jf }
 }
 
 export interface codegang_jf {
   id: number
   userid: string
+  username: string
   jf: number
   time: Date
-}
-export interface codegang_user_set {
-  id: number
-  userid: string
-  set: any
 }
 
 export async function apply(ctx: Context, cfg: Config) {
   ctx.model.extend('codegang_jf', {
     id: 'unsigned',
     userid: 'string',
+    username: 'string',
     jf: 'integer',
     time: 'timestamp'
-  }, { autoInc: true })
-  ctx.model.extend('codegang_user_set', {
-    id: 'unsigned',
-    userid: 'string',
-    set: 'json'
   }, { autoInc: true })
   dajf.init(ctx.database, cfg);
   ncm.init(ctx.http, cfg);
   //初始化数据库和class
+
+  // ctx.command('积分排行').alias('排行').action(async ({ session }) => {
+  //   const topUsers = await dajf.getTopUsers(10);
+  //   console.log(topUsers);
+  //   let msg = '积分排行榜\n';
+  //   topUsers.forEach((item, index) => {
+  //     msg += `${index + 1}. ${item.userid}—${item.jf}\n`;
+  //   });
+  //   session.send(msg);
+  // });
 
   ctx.command('我的积分').alias('查询积分').alias('积分查询').alias('积分').alias('jf').action(async ({ session }) => {
     sleep(cfg.delay);
@@ -58,9 +60,20 @@ export async function apply(ctx: Context, cfg: Config) {
 
   ctx.command('签到').alias('qd').action(async ({ session }) => {
     if (cfg.isdev) { return '开发版无法签到'; }
+    //判断数据库的username是否存在且一致
+    let user = await ctx.database.get('codegang_jf', { userid: session.userId });
+    if (user.length == 0) {
+      await ctx.database.create('codegang_jf', { userid: session.userId, username: session.username, jf: 0});
+    } else {
+      if (user[0].username != session.username) {
+        await ctx.database.set('codegang_jf', { userid: session.userId }, { username: session.username });
+      }
+    }
+
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
-    let mail = (ctx.mail && ((await ctx.mail.getuserMailNum(session.userId)) != 0)) ? '\n✉️你有新的邮件哦' : '';
+    
+    let mail = ''
     switch (usertype) {
       case 0: {
         upjf = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum) + cfg.firstplusnum;

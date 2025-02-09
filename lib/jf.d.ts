@@ -10,4 +10,5 @@ export declare class jf {
     reduce(userid: string, jf: number): Promise<boolean>;
     updatetime(userid: string): Promise<boolean>;
     chacktime(userid: string): Promise<any>;
+    getTopUsers(num: number): Promise<any>;
 }
