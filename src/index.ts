@@ -45,15 +45,15 @@ export async function apply(ctx: Context, cfg: Config) {
 
   ctx.command('积分排行').alias('排行').action(async ({ session }) => {
     const topUsers = await dajf.getTopUsers(10);
-    console.log(topUsers);
     let msg = '积分排行榜\n';
     topUsers.forEach((item, index) => {
-      //name如果是一个字就不脱敏，两个字就保留最后一个字，三个字及以上将name中间60%的内容脱敏，如果是空就取固定值<未知>
-      let name = item.username;
-      if(name == null){
-        name = '<未知>'
+      // 如果是空就取userid
+      if (!item.username) {
+        item.username = item.userid;
       }
-      else if (name.length == 1) {
+      //name如果是一个字就不脱敏，两个字就保留最后一个字，三个字及以上将name中间60%的内容脱敏
+      let name = item.username;
+      if (name.length == 1) {
         name = name;
       } else if (name.length <= 5) {
         //将名称前面一半的字符脱敏
@@ -61,6 +61,7 @@ export async function apply(ctx: Context, cfg: Config) {
       } else {
         name = name.slice(0, Math.floor(name.length / 5)) + '***' + name.slice(Math.floor(name.length / 5) * 4);
       }
+
       msg += `${index + 1}. ${name}—${item.jf}\n`;
     });
     session.send(msg);
@@ -76,7 +77,7 @@ export async function apply(ctx: Context, cfg: Config) {
     //判断数据库的username是否存在且一致
     let user = await ctx.database.get('codegang_jf', { userid: session.userId });
     if (user.length == 0) {
-      await ctx.database.create('codegang_jf', { userid: session.userId, username: session.username, jf: 0});
+      await ctx.database.create('codegang_jf', { userid: session.userId, username: session.username, jf: 0 });
     } else {
       if (user[0].username != session.username) {
         await ctx.database.set('codegang_jf', { userid: session.userId }, { username: session.username });
@@ -85,7 +86,7 @@ export async function apply(ctx: Context, cfg: Config) {
 
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
-    
+
     let mail = ''
     switch (usertype) {
       case 0: {
