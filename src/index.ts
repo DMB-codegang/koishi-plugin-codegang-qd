@@ -60,7 +60,7 @@ export async function apply(ctx: Context, cfg: Config) {
       } else {
         name = name.slice(0, Math.floor(name.length / 5)) + '***' + name.slice(Math.floor(name.length / 5) * 4);
       }
-      msg += `${index + 1}. ${item.userid}—${item.jf}\n`;
+      msg += `${index + 1}. ${name}—${item.jf}\n`;
     });
     session.send(msg);
   });
