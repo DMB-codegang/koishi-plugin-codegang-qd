@@ -11,7 +11,7 @@ export async function getHitokoto(http: HTTP) {
         return row.hitokoto + '——' + row.from;
     } catch (err) {
         console.error(`一言获取失败……`);
-        log.error('一言获取失败: %s', err.message);
+        log.error('一言获取失败: %s', err);
         return 'error';
     }
 
@@ -47,14 +47,14 @@ export async function getfortune(http: HTTP, userid: string) {
             res.sign = row.match(/<dt>签文：<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)[1];
             //取出解签的结果写入res.res
             res.res = row.match(/<dt>解签：<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)[1];
-
             return `今日运势：${res.index}${res.star}\n${res.sign}\n${res.res}`;
         } else {
-            return `运势获取失败……${row.code}\n${row.msg}`;
+            log.error('运势获取失败: %s', row);
+            return `运势获取失败……${row}`;
         }
     } catch (err) {
-        console.error(`Error fetching fortune: ${err.message}`);
-        return '运势获取失败……' + err.message;
+        log.error('获取运势时遇到致命错误: %s', err);
+        return '获取运势时遇到致命错误' + err;
     }
 }
 

@@ -84,13 +84,13 @@ export class jf {
 
   async getTopUsers(num: number) {
     let row = await this.database.get('codegang_jf', {}, {
-      fields: ['userid', 'jf'],
+      fields: ['userid', 'username', 'jf'],
       sort: { jf: 'desc' },
       limit: num
     });
     //转换为对象后返回
     return row.map((item: any) => {
-      return { userid: item.userid, jf: item.jf };
+      return { userid: item.userid, username: item.username, jf: item.jf };
     });
   }
 }

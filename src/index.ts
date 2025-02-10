@@ -43,15 +43,27 @@ export async function apply(ctx: Context, cfg: Config) {
   ncm.init(ctx.http, cfg);
   //初始化数据库和class
 
-  // ctx.command('积分排行').alias('排行').action(async ({ session }) => {
-  //   const topUsers = await dajf.getTopUsers(10);
-  //   console.log(topUsers);
-  //   let msg = '积分排行榜\n';
-  //   topUsers.forEach((item, index) => {
-  //     msg += `${index + 1}. ${item.userid}—${item.jf}\n`;
-  //   });
-  //   session.send(msg);
-  // });
+  ctx.command('积分排行').alias('排行').action(async ({ session }) => {
+    const topUsers = await dajf.getTopUsers(10);
+    console.log(topUsers);
+    let msg = '积分排行榜\n';
+    topUsers.forEach((item, index) => {
+      //name如果是一个字就不打码，两个字就保留最后一个字，三个字及以上将name中间60%的内容打码，如果是空就取固定值<未知>
+      let name = item.username;
+      if(name == null){
+        name = '<未知>'
+      }
+      else if (name.length == 1) {
+        name = name;
+      } else if (name.length == 2) {
+        name = name[0] + '*';
+      } else {
+        name = name.slice(0, Math.floor(name.length / 5)) + '***' + name.slice(Math.floor(name.length / 5) * 4);
+      }
+      msg += `${index + 1}. ${item.userid}—${item.jf}\n`;
+    });
+    session.send(msg);
+  });
 
   ctx.command('我的积分').alias('查询积分').alias('积分查询').alias('积分').alias('jf').action(async ({ session }) => {
     sleep(cfg.delay);
