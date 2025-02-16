@@ -86,6 +86,7 @@ export async function apply(ctx: Context, cfg: Config) {
 
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
+    const fortune = await getfortune(ctx.http, session.userId);
 
     let mail = ''
     switch (usertype) {
@@ -98,14 +99,13 @@ export async function apply(ctx: Context, cfg: Config) {
         break;
       }
       default: {
-        session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}\n${await getfortune(ctx.http, session.userId)}${mail}`);
+        session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}\n${fortune}${mail}`);
         return;
       }
     }
     dajf.add(session.userId, upjf);
     dajf.updatetime(session.userId);
     let img = h('img', { src: 'https://t.alcy.cc/pc/' });
-    let fortune = await getfortune(ctx.http, session.userId);
     let hitokoto = await getHitokoto(ctx.http);
     session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
   });
