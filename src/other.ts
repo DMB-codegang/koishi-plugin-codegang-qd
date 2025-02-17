@@ -18,18 +18,6 @@ export async function getHitokoto(http: HTTP) {
 }
 
 export async function getfortune(http: HTTP, userid: string) {
-    // 旧方式，由于不稳定已经弃用
-    // try {
-    //     let row = await http.get(`https://api.fanlisky.cn/api/qr-fortune/get/${userid}`);
-    //     if (row.code == 200) {
-    //         return `今日运势：${row.data.fortuneSummary}${row.data.luckyStar}\n${row.data.signText}\n${row.data.unSignText}`;
-    //     } else {
-    //         return `运势获取失败……${row.code}\n${row.msg}`;
-    //     }
-    // } catch (err) {
-    //     console.error(`Error fetching fortune: ${err.message}`);
-    //     return '运势获取失败……';
-    // }
 
     try {
         //将userid，今天年份，月份，日期拼接成url
@@ -39,11 +27,11 @@ export async function getfortune(http: HTTP, userid: string) {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        let row = await http.get(`http://qq.link114.cn/${userid}${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`, { headers });
+        userid = (Number(userid)+Number(`${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()})`)).toString();
+        let row = await http.get(`http://qq.link114.cn/${userid}`, { headers });
         if (row) {
             //取出内容的class="listpage_content"div内的内容
             row = row.match(/<div class="listpage_content">([\s\S]*?)<\/div>/)[1];
-
             let res = { index: '', star: '', sign: '', res: '' };
             //取出运势总结的结果写入res.index
             res.index = row.match(/<dt>运情总结：<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)[1];
