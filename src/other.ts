@@ -27,7 +27,7 @@ export async function getfortune(http: HTTP, userid: string) {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             'Content-Type': 'application/x-www-form-urlencoded'
         };
-        userid = (Number(userid)+Number(`${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()})`)).toString();
+        userid = (Number(userid)+Number(`${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`)).toString();
         let row = await http.get(`http://qq.link114.cn/${userid}`, { headers });
         if (row) {
             //取出内容的class="listpage_content"div内的内容
