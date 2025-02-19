@@ -17,18 +17,39 @@ export async function getHitokoto(http: HTTP) {
 
 }
 
-export async function getfortune(http: HTTP, userid: string) {
+export async function getfortune(http: HTTP, userid: string,) {
 
     try {
         //将userid，今天年份，月份，日期拼接成url
         // 参数为(url: string, config?: HTTP.RequestConfig)
         // 定义头部信息
-        let headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
-            'Content-Type': 'application/x-www-form-urlencoded'
-        };
-        userid = (Number(userid)+Number(`${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`)).toString();
-        let row = await http.get(`http://qq.link114.cn/${userid}`, { headers });
+
+        // 使用http.get方法获取网页内容的方法
+        // const headers = {
+        //     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        //     "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        //     "cache-control": "max-age=0",
+        //     "upgrade-insecure-requests": "1"
+        // };
+        // userid = (Number(userid)+Number(`${new Date().getFullYear()}${new Date().getMonth() + 1}${new Date().getDate()}`)).toString();
+        // // (property) HTTP.get: HTTP.Request1
+        // // <any>(url: string, config?: HTTP.RequestConfig)
+        // let row = await http.get(`http://qq.link114.cn/${userid}`, { headers });
+
+        let res = await fetch(`http://qq.link114.cn/${userid}`, {
+            "headers": {
+                "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+                "cache-control": "max-age=0",
+                "upgrade-insecure-requests": "1"
+            },
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": null,
+            "method": "GET"
+        });
+
+        let row = await res.text();
+
         if (row) {
             //取出内容的class="listpage_content"div内的内容
             row = row.match(/<div class="listpage_content">([\s\S]*?)<\/div>/)[1];
