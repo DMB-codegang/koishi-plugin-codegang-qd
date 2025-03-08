@@ -1,16 +1,17 @@
 import { } from 'koishi-plugin-mail'
+import { } from 'koishi-plugin-puppeteer'
 import { Context, h, sleep, Logger } from 'koishi'
 
 import { jf } from './jf'
 import { Ncm } from './ncm'
 import { Config } from './config'
-import { getHitokoto, getfortune } from './other'
+import { getHitokoto, getfortunev2 } from './other'
 
 export const name = 'codegang-qd'
 export const description = 'Codegang签到插件'
 export const author = '小舍'
 export const inject = {
-  required: ['database', 'http'],
+  required: ['database', 'http', 'puppeteer'],
   optional: ['mail'],
 }
 export * from './config'
@@ -86,7 +87,7 @@ export async function apply(ctx: Context, cfg: Config) {
 
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
-    const fortune = await getfortune(ctx.http, session.userId);
+    const fortune = await getfortunev2(session.userId, ctx.puppeteer);
 
     let mail = ''
     switch (usertype) {
