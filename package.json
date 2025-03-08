@@ -46,7 +46,7 @@
   },
   "koishi": {
     "description": {
-      "zh": "目前仅个人使用\ncookie是网易云的cookie"
+      "zh": "提供签到，积分，运势为一体的插件"
     },
     "service": {
       "required": [
