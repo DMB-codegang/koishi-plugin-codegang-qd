@@ -5,7 +5,7 @@ import { Context, h, sleep, Logger } from 'koishi'
 import { jf } from './jf'
 import { Ncm } from './ncm'
 import { Config } from './config'
-import { getHitokoto, getfortunev2 } from './other'
+import { getHitokoto, getfortunev2, init } from './other'
 
 export const name = 'codegang-qd'
 export const description = 'Codegang签到插件'
@@ -43,6 +43,7 @@ export async function apply(ctx: Context, cfg: Config) {
   dajf.init(ctx.database, cfg);
   ncm.init(ctx.http, cfg);
   //初始化数据库和class
+  init(ctx);
 
   ctx.command('积分排行').alias('排行').action(async ({ session }) => {
     const topUsers = await dajf.getTopUsers(10);
@@ -87,7 +88,7 @@ export async function apply(ctx: Context, cfg: Config) {
 
     let usertype = await dajf.chacktime(session.userId);
     let upjf: number;
-    const fortune = await getfortunev2(session.userId, ctx.puppeteer);
+    const fortune = await getfortunev2(session.userId);
 
     let mail = ''
     switch (usertype) {
