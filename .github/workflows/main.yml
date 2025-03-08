@@ -6,6 +6,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 导入源码
+        uses: actions/checkout@v4
+        
+      - name: 安装Node
+        uses: actions/setup-node@v4
 
       - name: 设置 .npmrc 文件
         run: |
