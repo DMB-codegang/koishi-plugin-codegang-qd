@@ -19,7 +19,6 @@ export class jf {
     } else {
       return row[0].jf;
     }
-
   }
 
   async set(userid: string, jf: number) {
@@ -54,33 +53,6 @@ export class jf {
     }
   }
 
-  async updatetime(userid: string) {
-    let row = await this.database.get(database_name, { userid: userid });
-    if (row.length == 0) {
-      return false;
-    } else {
-      await this.database.set(database_name, { userid: userid }, { time: new Date() });
-      return true;
-    }
-  }
-
-  async chacktime(userid: string) {
-    let row = await this.database.get(database_name, { userid: userid });
-    if (row.length == 0 || row[0].time == null) {
-      return 0;//新用户
-    } else {
-      let lasttime = row[0].time;
-      let nowtime = new Date();
-      if (!(lasttime == null)) {
-        lasttime = new Date(lasttime);
-      }
-      if (lasttime.getDate() == nowtime.getDate()) {
-        return lasttime;//已签到
-      } else {
-        return 1;//未签到
-      }
-    }
-  }
 
   async getTopUsers(num: number) {
     let row = await this.database.get('codegang_jf', {}, {

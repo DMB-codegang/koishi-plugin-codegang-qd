@@ -1,8 +1,9 @@
 import { } from 'koishi-plugin-mail'
+import { } from 'koishi-plugin-codegang-jf'
 import { } from 'koishi-plugin-puppeteer'
 import { Context, h, sleep, Logger } from 'koishi'
 
-import { jf } from './jf'
+import { time } from './timeServer'
 import { Ncm } from './ncm'
 import { Config } from './config'
 import { getHitokoto, getfortunev2, init } from './other'
@@ -10,43 +11,46 @@ import { getHitokoto, getfortunev2, init } from './other'
 export const name = 'codegang-qd'
 export const description = 'Codegang签到插件'
 export const author = '小舍'
+export const version = '1.1.0-Dev-1'
+const lockSet = new Set<string>();
 export const inject = {
-  required: ['database', 'http', 'puppeteer'],
+  required: ['database', 'http', 'puppeteer', 'jf'],
   optional: ['mail'],
 }
 export * from './config'
 
 const ncm = new Ncm();
-const dajf = new jf();
 const log = new Logger("@codegang/codegang-qd");
 
 declare module 'koishi' {
-  interface Tables { codegang_jf: codegang_jf }
+  interface Tables { codegang_qd: codegang_qd }
 }
 
-export interface codegang_jf {
+export interface codegang_qd {
   id: number
   userid: string
   username: string
-  jf: number
   time: Date
+  monthlyRecords: JSON
 }
 
 export async function apply(ctx: Context, cfg: Config) {
-  ctx.model.extend('codegang_jf', {
+  ctx.model.extend('codegang_qd', {
     id: 'unsigned',
     userid: 'string',
-    username: 'string',
-    jf: 'integer',
-    time: 'timestamp'
+    time: 'timestamp', // 今日签到时间
+    monthlyRecords: 'json'// 本月签到记录
   }, { autoInc: true })
-  dajf.init(ctx.database, cfg);
+  this.timeService = new time(ctx);
   ncm.init(ctx.http, cfg);
-  //初始化数据库和class
   init(ctx);
 
+  ctx.command('test').action(async ({ session }) => {
+    session.send("这是通过新版本取出的积分数据" + (await ctx.jf.get(session.userId)))
+  });
+
   ctx.command('积分排行').alias('排行').action(async ({ session }) => {
-    const topUsers = await dajf.getTopUsers(10);
+    const topUsers = await ctx.jf.getTopUsers(10);
     let msg = '积分排行榜\n';
     topUsers.forEach((item, index) => {
       // 如果是空就取userid
@@ -63,53 +67,44 @@ export async function apply(ctx: Context, cfg: Config) {
       } else {
         name = name.slice(0, Math.floor(name.length / 5)) + '***' + name.slice(Math.floor(name.length / 5) * 4);
       }
-
       msg += `${index + 1}. ${name}—${item.jf}\n`;
     });
     session.send(msg);
   });
 
-  ctx.command('我的积分').alias('查询积分').alias('积分查询').alias('积分').alias('jf').action(async ({ session }) => {
-    sleep(cfg.delay);
-    session.send(`你的积分是${await dajf.get(session.userId)}`);
-  })
-
   ctx.command('签到').alias('qd').action(async ({ session }) => {
-    if (cfg.isdev) { return '开发版无法签到'; }
-    //判断数据库的username是否存在且一致
-    let user = await ctx.database.get('codegang_jf', { userid: session.userId });
-    if (user.length == 0) {
-      await ctx.database.create('codegang_jf', { userid: session.userId, username: session.username, jf: 0 });
-    } else {
-      if (user[0].username != session.username) {
-        await ctx.database.set('codegang_jf', { userid: session.userId }, { username: session.username });
-      }
-    }
+    // 添加请求锁防止重复提交
+    const lockKey = `qd:lock:${session.userId}`;
+    if (lockSet.has(lockKey)) return;
+    lockSet.add(lockKey);
+    try {
+      let usertype = cfg.isdev ? 1 : await this.timeService.checkTime(session.userId);
+      let upjf: number;
+      const fortune = await getfortunev2(session.userId);
 
-    let usertype = await dajf.chacktime(session.userId);
-    let upjf: number;
-    const fortune = await getfortunev2(session.userId);
-
-    let mail = ''
-    switch (usertype) {
-      case 0: {
-        upjf = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum) + cfg.firstplusnum;
-        break;
+      let mail = ''
+      switch (usertype) {
+        case 0: {
+          upjf = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum) + cfg.firstplusnum;
+          break;
+        }
+        case 1: {
+          upjf = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum);
+          break;
+        }
+        default: {
+          session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}\n${fortune}${mail}`);
+          return;
+        }
       }
-      case 1: {
-        upjf = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum);
-        break;
-      }
-      default: {
-        session.send(`今天已经签到过啦，上次的签到时间是${usertype.toLocaleString()}\n${fortune}${mail}`);
-        return;
-      }
+      let img = h('img', { src: 'https://t.alcy.cc/pc/' });
+      let hitokoto = await getHitokoto(ctx.http);
+      ctx.jf.add(session.userId, upjf, name);
+      this.timeService.updateTime(session.userId);
+      session.send((cfg.isdev ? `【测试模式${version}】` : '') + `签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
+    } finally {
+      lockSet.delete(lockKey);
     }
-    dajf.add(session.userId, upjf);
-    dajf.updatetime(session.userId);
-    let img = h('img', { src: 'https://t.alcy.cc/pc/' });
-    let hitokoto = await getHitokoto(ctx.http);
-    session.send(`签到成功，你获得了${upjf}积分` + mail + ((usertype == 0) ? '\n这是你首次签到哦' : '') + `\n${hitokoto}\n${fortune}\n${img}`);
   });
 
   ctx.command('积分商城').alias('积分商店').action(async ({ session }) => {
@@ -118,39 +113,35 @@ export async function apply(ctx: Context, cfg: Config) {
   });
 
   ctx.command('兑换 <thing> [arg1]').action(async ({ session }, thing, arg1) => {
+    if (thing == null) return "请在“兑换 ”后面输入要兑换的商品，注意空格"
     switch (true) {
-      case thing == null: {
-        sleep(cfg.delay);
-        session.send("请输入要兑换的商品");
-        break;
-      }
       case thing == "1" || thing == "一言": {
         const price = 2;
-        let jf = await dajf.get(session.userId);
+        let jf = await ctx.jf.get(session.userId);
         if (jf < price) {
           sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
-        dajf.reduce(session.userId, price);
+        ctx.jf.reduce(session.userId, price);
         session.send(await getHitokoto(ctx.http));
         break;
       }
       case thing == "2" || thing == "二次元": {
         const price = 15;
-        let jf = await dajf.get(session.userId);
+        let jf = await ctx.jf.get(session.userId);
         if (jf < price) {
           sleep(cfg.delay);
           session.send("积分不足哦");
           break;
         }
-        dajf.reduce(session.userId, price);
+        ctx.jf.reduce(session.userId, price);
         session.send('<img src="https://t.alcy.cc/pc/"/>');
         break;
       }
       case thing == "3" || thing == "涩图": {
         const price = 25;
-        let jf = await dajf.get(session.userId);
+        let jf = await ctx.jf.get(session.userId);
         if (jf < price) {
           sleep(cfg.delay);
           session.send("积分不足哦");
@@ -158,7 +149,7 @@ export async function apply(ctx: Context, cfg: Config) {
         }
         try {
           let url = await ctx.http.get('https://api.lolicon.app/setu/v2');
-          await dajf.reduce(session.userId, price);
+          await ctx.jf.reduce(session.userId, price);
           session.send(`<img src="${url.data[0].urls.original}"/>`);
         } catch (error) {
           console.error('Error fetching image:', error);
@@ -169,7 +160,7 @@ export async function apply(ctx: Context, cfg: Config) {
       case thing == "4" || thing == "网易云": {
         const price = 10;
         let messageid: Array<string>;
-        let jf = await dajf.get(session.userId);
+        let jf = await ctx.jf.get(session.userId);
         if (jf < price) {
           sleep(cfg.delay);
           session.send("积分不足哦");
@@ -253,7 +244,7 @@ export async function apply(ctx: Context, cfg: Config) {
                 }
               }
             }
-            dajf.reduce(session.userId, price);
+            ctx.jf.reduce(session.userId, price);
             break;
           }
           default: {

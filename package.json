@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-codegang-qd",
   "description": "codegang签到插件",
-  "version": "1.0.34",
+  "version": "1.1.0-Dev-1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -36,7 +36,7 @@
     "esbuild": "^0.20.2",
     "esbuild-register": "^3.6.0",
     "koishi": "^4.18.7",
-    "typescript": "^5.9.0-dev.20250308"
+    "typescript": "^5.9.0-dev.20250310"
   },
   "dependencies": {
     "@koishijs/console": "^5.30.7"
@@ -52,7 +52,11 @@
       "required": [
         "database",
         "http",
-        "puppeteer"
+        "puppeteer",
+        "jf"
+      ],
+      "optional": [
+        "mail"
       ]
     },
     "preview": true

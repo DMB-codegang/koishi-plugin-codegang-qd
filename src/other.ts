@@ -9,6 +9,17 @@ export function init(context: Context) {
     ctx = context;
 }
 
+// export async function checkAndUpdateUserName(userid: string, username: string) {
+//     let user = await ctx.database.get('codegang_jf', { userid: userid });
+//     if (user.length == 0) {//如果用户不存在
+//         await ctx.database.create('codegang_jf', { userid: userid, username: username, jf: 0 });//创建用户
+//     } else {//如果用户存在
+//         if (user[0].username != username) {//如果用户名不一致
+//             await ctx.database.set('codegang_jf', { userid: userid }, { username: username });//更新用户名
+//         }
+//     }
+// }
+
 export async function getHitokoto(http: HTTP) {
     try {
         let row = await http.get('https://v1.hitokoto.cn')
@@ -51,7 +62,6 @@ export async function getfortunev2(userid: string) {
     }
 }
 
-
 export async function getSetu(http: HTTP) {
     try {
         let url = await http.get('https://api.lolicon.app/setu/v2');
@@ -61,3 +71,5 @@ export async function getSetu(http: HTTP) {
         return '获取图片失败，请稍后再试';
     }
 }
+
+

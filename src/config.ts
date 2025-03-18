@@ -1,4 +1,4 @@
-import { Dict,Schema } from 'koishi'
+import { Schema } from 'koishi'
 
 export interface Config {
     delay: number
