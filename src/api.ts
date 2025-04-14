@@ -34,7 +34,7 @@ export class api {
             }
         }
         message = message.replace(/\{user\}/g, username)
-        message = message.replace(/\{points\}/g, upPoints.toString() || '')
+        if(upPoints) message = message.replace(/\{points\}/g, upPoints.toString() || '')
         message = message.replace(/\{fortune\}/g, (await this.getFortune(userid)))
         message = message.replace(/\{time\}/g, (new Date()).toLocaleString())
         message = message.replace(/\{last_time\}/g, ((await this.timeService.getLastTime(userid)).toLocaleString()).toString())
