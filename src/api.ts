@@ -48,7 +48,7 @@ export class api {
                 if (!api || key == '{AT}') continue;
                 // 判断是否为http开头，不是就作为普通文本嵌入
                 if (api.url.startsWith('http')) {
-                    if (api.jsonPath !== '') {
+                    if (api.jsonPath == '' || api.jsonPath == undefined || api.jsonPath == null) {
                         if (api.type === 'image') {
                             message = message.replace(key, h('img', { src: api.url }).toString())//`<img src="${api.url}"/>`)
                         } else {
@@ -57,7 +57,7 @@ export class api {
                         }
                     } else {
                         const response = await this.ctx.http.get(api.url)
-                        const data = JSON.parse(response)
+                        const data = typeof response === 'string' ? JSON.parse(response) : response
                         const value = jsonpath.query(data, api.jsonPath)[0]
                         if (api.type === 'image') {
                             message = message.replace(key, h('img', { src: value }).toString())//`<img src="${value}"/>`)
