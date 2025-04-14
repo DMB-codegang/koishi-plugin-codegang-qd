@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-codegang-qd",
   "description": "codegang签到插件",
-  "version": "1.1.0-Dev-1",
+  "version": "2.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -46,7 +46,7 @@
   },
   "koishi": {
     "description": {
-      "zh": "提供签到，积分，运势为一体的插件"
+      "zh": "高度可自定义化的签到插件"
     },
     "service": {
       "required": [
