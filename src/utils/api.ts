@@ -1,20 +1,19 @@
 import { h, Context } from 'koishi'
 import * as jsonpath from 'jsonpath'
-import { Config } from './config'
-import { time, UserType } from './timeServer'
+import { Config } from '../config'
+import { time } from './timeServer'
+import { UserType } from '../types'
 
-export class api {
-    private ctx: Context
-    private cfg: Config
-    private timeService: time
+export class Api {
+    private static ctx: Context
+    private static cfg: Config
 
-    constructor(ctx: Context, cfg: Config) {
-        this.ctx = ctx
-        this.cfg = cfg
-        this.timeService = new time(ctx)
+    static Init(ctx: Context, cfg: Config) {
+        Api.ctx = ctx
+        Api.cfg = cfg
     }
 
-    async buildQDmessage(type: 'success' | 'already' | 'failed', userid: string, username: string, usertype: UserType, upPoints?: number, errorMessage?: string): Promise<string> {
+    static async buildQDmessage(type: 'success' | 'already' | 'failed', userid: string, username: string, usertype: UserType, upPoints?: number, errorMessage?: string): Promise<string> {
         let message = ''
         switch (type) {
             case 'success': {
@@ -33,11 +32,14 @@ export class api {
                 break;
             }
         }
+        // 获取连续签到天数
+        const consecutiveDays = await time.getConsecutiveDays(userid);
         message = message.replace(/\{user\}/g, username)
         if(upPoints) message = message.replace(/\{points\}/g, upPoints.toString() || '')
         message = message.replace(/\{fortune\}/g, (await this.getFortune(userid)))
+        message = message.replace(/\{consecutive_days\}/g, consecutiveDays.toString())
         message = message.replace(/\{time\}/g, (new Date()).toLocaleString())
-        message = message.replace(/\{last_time\}/g, ((await this.timeService.getLastTime(userid)).toLocaleString()).toString())
+        message = message.replace(/\{last_time\}/g, ((await time.getLastTime(userid)).toLocaleString()).toString())
         message = message.replace(/\{totalpoints\}/g, (await this.ctx.points.get(userid)).toString())
         // 将message剩下的{key}按照cfg.style_apiList的方法请求api并进行替换
         const keys = message.match(/{([^}]+)}/g)
@@ -74,7 +76,7 @@ export class api {
     }
 
 
-    private async getFortune(userid: string): Promise<string> {
+    private static async getFortune(userid: string): Promise<string> {
         if (!userid) throw new Error('Invalid parameters');
         if (!this.ctx.puppeteer) return '';
         userid = (Number(userid) + Number(`${(new Date()).getFullYear()}${(new Date()).getMonth() + 1}${(new Date()).getDate()}`)).toString();

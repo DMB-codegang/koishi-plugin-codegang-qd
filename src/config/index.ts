@@ -1,5 +1,8 @@
 import { Schema } from 'koishi'
 
+// 定义通用的变量替换说明
+
+
 export interface Config {
     minplusnum: number
     maxplusnum: number
@@ -63,19 +66,19 @@ export const Config: Schema<Config> = Schema.intersect([
     }).description('基础配置'),
     Schema.object({
         
-        style_text: Schema.string().description('签到成功的文本\n`{user}`为用户昵称\n`{points}`为用户积分\n`{fortune}`为用户运势\n`{time}`为用户签到时间\n`{totalpoints}`为用户总积分').role('textarea', { rows: [4,3] }),
-        style_already_text: Schema.string().description('已签到的文本\n`{user}`为用户昵称\n`{time}`为用户签到时间\n`{totalpoints}`为用户总积分').role('textarea', { rows: [4,3] }),
-        style_failed_text: Schema.string().description('签到失败的文本\n`{user}`为用户昵称\n`{time}`为用户签到时间\n`{totalpoints}`为用户总积分').role('textarea', { rows: [4,3] }).experimental(),
-        style_welcome_text: Schema.string().default('这是你首次签到哦').description('新用户签到欢迎语\n`{user}`为用户昵称\n`{time}`为用户签到时间').role('textarea', { rows: [4,3] }),
-    }),
+        style_text: Schema.string().description('签到成功的文本').role('textarea', { rows: [4,3] }),
+        style_already_text: Schema.string().description('已签到的文本').role('textarea', { rows: [4,3] }),
+        style_failed_text: Schema.string().description('签到失败的文本').role('textarea', { rows: [4,3] }).experimental(),
+        style_welcome_text: Schema.string().default('这是你首次签到哦').description('新用户签到欢迎语').role('textarea', { rows: [4,3] }),
+    }).description('签到样式'),
     Schema.object({
         style_apiList: Schema.array(Schema.object({
             key: Schema.string().description('绑定值'),
             type: Schema.union(['text', 'image']).description('绑定值的类型'),
             url: Schema.string().description('URL/text，当文本开头不是http将会作为普通文本嵌入'),
             jsonPath: Schema.string().description('API的响应数据路径'),
-          })).role('table'),
-    }).description('签到样式'),
+          })).role('table').description('可自定义的API列表'),
+    }),
     Schema.object({
         isdev: Schema.boolean().default(false).description('是否为测试模式\n！警告：测试模式下不会使用积分系统').experimental()
     }).description('开发者配置')
