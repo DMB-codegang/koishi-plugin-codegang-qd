@@ -2,6 +2,9 @@
 
 ![npm version](https://img.shields.io/npm/v/koishi-plugin-codegang-qd) ![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-codegang-qd) ![npm downloads](https://img.shields.io/npm/l/koishi-plugin-codegang-qd) 
 
+> ![IMPORTANT]
+> 2.0.4版本修复了签到时间错误的混用了本地时间和UTC时间的问题，请尽快更新至2.0.4及以上版本
+
 ## 简介
 
 这是一个高度可自定义的签到插件，适用于 Koishi 框架。该插件允许用户进行签到操作，并可以根据配置获得积分奖励。插件支持自定义签到文本、签到失败文本以及已签到文本，同时还可以集成外部 API 来丰富签到体验。
