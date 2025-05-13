@@ -6,6 +6,7 @@ import { Schema } from 'koishi'
 export interface Config {
     minplusnum: number
     maxplusnum: number
+    timezone: number
     firstplusnum: number
     // 签到成功的文本
     /**
@@ -63,6 +64,33 @@ export const Config: Schema<Config> = Schema.intersect([
         minplusnum: Schema.number().default(1).description('每次签到的最小加分数量'),
         maxplusnum: Schema.number().default(10).description('每次签到最大加分数量'),
         firstplusnum: Schema.number().default(20).description('首次签到的额外加分数量'),
+        timezone: Schema.union([
+            Schema.const(1).description('东一区（+1）'),
+            Schema.const(2).description('东二区（+2）'),
+            Schema.const(3).description('东三区（+3）'),
+            Schema.const(4).description('东四区（+4）'),
+            Schema.const(5).description('东五区（+5）'),
+            Schema.const(6).description('东六区（+6）'),
+            Schema.const(7).description('东七区（+7）'),
+            Schema.const(8).description('东八区（+8）'),
+            Schema.const(9).description('东九区（+9）'),
+            Schema.const(10).description('东十区（+10）'),
+            Schema.const(11).description('东十一区（+11）'),
+            Schema.const(12).description('东十二区（+12）'),
+            Schema.const(-1).description('西一区（-1）'),
+            Schema.const(-2).description('西二区（-2）'),
+            Schema.const(-3).description('西三区（-3）'),
+            Schema.const(-4).description('西四区（-4）'),
+            Schema.const(-5).description('西五区（-5）'),
+            Schema.const(-6).description('西六区（-6）'),
+            Schema.const(-7).description('西七区（-7）'),
+            Schema.const(-8).description('西八区（-8）'),
+            Schema.const(-9).description('西九区（-9）'),
+            Schema.const(-10).description('西十区（-10）'),
+            Schema.const(-11).description('西十一区（-11）'),
+            Schema.const(-12).description('西十二区（-12）'),
+            Schema.const(0).description('UTC协调世界时（+0）'),
+        ]).default(8).description('时区'),
     }).description('基础配置'),
     Schema.object({
         

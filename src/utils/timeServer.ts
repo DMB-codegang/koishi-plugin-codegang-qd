@@ -5,21 +5,31 @@ const database_name = 'codegang_qd' as const
 
 export class time {
     private static ctx: Context
-    static Init(ctx: Context) {
+    private static timezone: number
+    static Init(ctx: Context, timezone: number) {
         time.ctx = ctx
+        time.timezone = timezone
+    }
+
+    // 获取当前时区的时间
+    static getCurrentTime() {
+        const date = new Date()
+        const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+        return new Date(utc + (3600000 * time.timezone))
     }
 
     static async updateTime(userid: string) {
-        const year = new Date().getFullYear();
-        const month = new Date().getMonth() + 1;
-        const day = new Date().getDate();
+        const currentTime = time.getCurrentTime()
+        const year = currentTime.getFullYear()
+        const month = currentTime.getMonth() + 1
+        const day = currentTime.getDate()
         const userRecords = await time.ctx.database.get(database_name, { userid });
         const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
         if (userRecords.length === 0) {
             // 新用户
             const monthlyRecords = {};
             monthlyRecords[yearMonth] = [day];
-            this.ctx.database.create(database_name, { userid, time: new Date(), monthlyRecords });
+            this.ctx.database.create(database_name, { userid, time: currentTime, monthlyRecords });
         } else {
             // 更新现有用户的记录
             let monthlyRecords = userRecords[0].monthlyRecords || {};
@@ -35,7 +45,7 @@ export class time {
                 // 对日期进行排序
                 monthlyRecords[yearMonth].sort((a: number, b: number) => a - b);
             }
-            this.ctx.database.set(database_name, { userid }, { time: new Date(), monthlyRecords });
+            this.ctx.database.set(database_name, { userid }, { time: currentTime, monthlyRecords });
         }
         return true;
     }
@@ -44,16 +54,17 @@ export class time {
         const userRecords = await this.ctx.database.get(database_name, { userid });
         if (!userRecords[0]?.time) return 'newUser'; // 新用户返回0
         const lastTime = new Date(userRecords[0].time);
-        const nowTime = new Date();
-        const isSameDay = lastTime.getUTCFullYear() === nowTime.getUTCFullYear() &&
-            lastTime.getUTCMonth() === nowTime.getUTCMonth() &&
-            lastTime.getUTCDate() === nowTime.getUTCDate();
+        const currentTime = time.getCurrentTime()
+
+        const isSameDay = lastTime.getFullYear() === currentTime.getFullYear() &&
+            lastTime.getMonth() === currentTime.getMonth() &&
+            lastTime.getDate() === currentTime.getDate();
         return isSameDay ? 'already' : 'notToday'; // 同一天返回上次签到时间，否则返回1
     }
 
     static async getLastTime(userid: string): Promise<number | Date> {
         const userRecords = await time.ctx.database.get(database_name, { userid });
-        if (!userRecords[0]?.time) 0; // 新用户返回0
+        if (!userRecords[0]?.time) return 0; // 新用户返回0
         const lastTime = new Date(userRecords[0].time);
         return lastTime; // 返回上次签到时间
     }
@@ -63,7 +74,7 @@ export class time {
         const userRecords = await time.ctx.database.get(database_name, { userid });
         if (!userRecords[0]?.monthlyRecords) return 0;
 
-        const today = new Date();
+        const today = time.getCurrentTime();
         let consecutiveDays = 0;
         let checkDate = new Date(today);
 

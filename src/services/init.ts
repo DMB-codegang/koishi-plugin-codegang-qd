@@ -5,7 +5,7 @@ import { Api } from '../utils/api'
 import { registerCommands } from '../commands'
 
 export function InitPlugin(ctx: Context, cfg: Config) {
-    time.Init(ctx) // 初始化时间服务
+    time.Init(ctx, cfg.timezone) // 初始化时间服务
     Api.Init(ctx, cfg) // 初始化API服务
     ctx.model.extend('codegang_qd', {
         id: 'unsigned',
