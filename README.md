@@ -2,7 +2,7 @@
 
 ![npm version](https://img.shields.io/npm/v/koishi-plugin-codegang-qd) ![npm downloads](https://img.shields.io/npm/dm/koishi-plugin-codegang-qd) ![npm downloads](https://img.shields.io/npm/l/koishi-plugin-codegang-qd) 
 
-> ![IMPORTANT]
+> [!IMPORTANT]  
 > 2.0.4版本修复了签到时间错误的混用了本地时间和UTC时间的问题，请尽快更新至2.0.4及以上版本
 
 ## 简介
