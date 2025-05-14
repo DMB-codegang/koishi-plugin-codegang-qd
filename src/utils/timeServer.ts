@@ -29,7 +29,7 @@ export class time {
             // 新用户
             const monthlyRecords = {};
             monthlyRecords[yearMonth] = [day];
-            this.ctx.database.create(database_name, { userid, time: currentTime, monthlyRecords });
+            await this.ctx.database.create(database_name, { userid, time: currentTime, monthlyRecords });
         } else {
             // 更新现有用户的记录
             let monthlyRecords = userRecords[0].monthlyRecords || {};
@@ -45,7 +45,7 @@ export class time {
                 // 对日期进行排序
                 monthlyRecords[yearMonth].sort((a: number, b: number) => a - b);
             }
-            this.ctx.database.set(database_name, { userid }, { time: currentTime, monthlyRecords });
+            await this.ctx.database.set(database_name, { userid }, { time: currentTime, monthlyRecords });
         }
         return true;
     }

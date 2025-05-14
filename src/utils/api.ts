@@ -52,7 +52,7 @@ export class Api {
                 if (api.url.startsWith('http')) {
                     if (api.jsonPath == '' || api.jsonPath == undefined || api.jsonPath == null) {
                         if (api.type === 'image') {
-                            message = message.replace(key, h('img', { src: api.url }).toString())//`<img src="${api.url}"/>`)
+                            message = message.replace(key, h('img', { src: api.url }).toString())
                         } else {
                             const response = await this.ctx.http.get(api.url)
                             message = message.replace(key, response)
@@ -62,7 +62,7 @@ export class Api {
                         const data = typeof response === 'string' ? JSON.parse(response) : response
                         const value = jsonpath.query(data, api.jsonPath)[0]
                         if (api.type === 'image') {
-                            message = message.replace(key, h('img', { src: value }).toString())//`<img src="${value}"/>`)
+                            message = message.replace(key, h('img', { src: value }).toString())
                         } else {
                             message = message.replace(key, value)
                         }

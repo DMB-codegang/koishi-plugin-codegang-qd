@@ -32,14 +32,7 @@ export interface Config {
     style_already_text: string
     // 签到失败文本
     /** 
-     * {AT}为艾特用户
-     * {username}为用户昵称
-     * {points}为用户获得的积分
-     * {fortune}为用户运势
-     * {last_time}为用户签到时间
-     * {totalpoints}为用户总积分
      * {error}为错误信息
-     * {<key>}其他绑定值
     */
     style_failed_text: string
     // 新用户签到欢迎语
@@ -93,10 +86,9 @@ export const Config: Schema<Config> = Schema.intersect([
         ]).default(8).description('时区'),
     }).description('基础配置'),
     Schema.object({
-        
-        style_text: Schema.string().description('签到成功的文本').role('textarea', { rows: [4,3] }),
-        style_already_text: Schema.string().description('已签到的文本').role('textarea', { rows: [4,3] }),
-        style_failed_text: Schema.string().description('签到失败的文本').role('textarea', { rows: [4,3] }).experimental(),
+        style_text: Schema.string().default('签到成功，你获得了{points}积分\n今天是你连续签到的第{consecutive_days}天哦').description('签到成功的文本').role('textarea', { rows: [4,3] }),
+        style_already_text: Schema.string().default('你今天已经签到过了哦').description('已签到的文本').role('textarea', { rows: [4,3] }),
+        style_failed_text: Schema.string().default('签到出现异常，请联系管理员：{error}').description('签到失败的文本').role('textarea', { rows: [4,3] }).experimental(),
         style_welcome_text: Schema.string().default('这是你首次签到哦').description('新用户签到欢迎语').role('textarea', { rows: [4,3] }),
     }).description('签到样式'),
     Schema.object({
