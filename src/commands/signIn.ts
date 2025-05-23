@@ -1,6 +1,7 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
 import { Api } from '../utils/api'
+import { Check } from '../utils/check'
 import { time } from '../utils/timeServer'
 import { name } from '../index'
 import { UserType } from '../types'
@@ -18,13 +19,26 @@ export function registerSignInCommand(ctx: Context, cfg: Config) {
         if (lockSet.has(lockKey)) return;
         lockSet.add(lockKey);
         try {
-            // 检查用户是否已经签到或插件目前是否在开发模式
+            let message = '';
+            // 检查用户当前的状态
             const usertype: UserType = cfg.isdev ? 'notToday' : await time.checkTime(session.userId);
+
+            // 今日已签到
             if (usertype == 'already') {
-                // 构建已签到信息
-                const message = h('quote', { id: session.messageId }) + await Api.buildQDmessage('already', session.userId, session.username, usertype);
+                // 构建今日已签到信息
+                message = h('quote', { id: session.messageId }) + await Api.buildQDmessage('already', session.userId, session.username, usertype);
                 await session.send(message);
                 return;
+            }
+
+            // 进行人机验证
+            if (cfg.captchaType != 'none' && Math.random() < cfg.captchaProbability) {
+                const captcha = await Check.check(ctx, cfg, session);
+                if (!captcha) {
+                    await session.send('签到失败: 人机验证失败');
+                    lockSet.delete(lockKey);
+                    return;
+                }
             }
 
             // 区分用户是否是新用户，确定需要加多少积分
@@ -48,8 +62,9 @@ export function registerSignInCommand(ctx: Context, cfg: Config) {
             const transaction = ctx.points.generateTransactionId()
             const res = await ctx.points.add(session.userId, transaction, uppoints, name);
             await time.updateTime(session.userId); // 更新签到时间
+
             // 构建签到成功的文本
-            const message = h('quote', { id: session.messageId }) + (cfg.isdev ? '【测试模式】' : '') + await Api.buildQDmessage('success', session.userId, session.username, usertype, uppoints);
+            message = h('quote', { id: session.messageId }) + (cfg.isdev ? '【测试模式】' : '') + await Api.buildQDmessage('success', session.userId, session.username, usertype, uppoints);
 
             await session.send(message);
 

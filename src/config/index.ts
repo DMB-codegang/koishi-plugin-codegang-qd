@@ -8,40 +8,11 @@ export interface Config {
     maxplusnum: number
     timezone: number
     firstplusnum: number
-    // 签到成功的文本
-    /**
-     * {AT}为艾特用户
-     * {username}为用户昵称
-     * {points}为用户获得的积分
-     * {fortune}为用户运势
-     * {time}为用户签到时间
-     * {totalpoints}为用户总积分
-     * {<key>}其他绑定值
-     */
+    captchaType: 'none' | '科目1' | '科目4'
+    captchaProbability: number
     style_text: string
-    // 已签到文本
-    /**
-     * {AT}为艾特用户
-     * {username}为用户昵称
-     * {points}为用户获得的积分
-     * {fortune}为用户运势
-     * {time}为用户签到时间
-     * {totalpoints}为用户总积分
-     * {<key>}其他绑定值
-     */
     style_already_text: string
-    // 签到失败文本
-    /** 
-     * {error}为错误信息
-    */
     style_failed_text: string
-    // 新用户签到欢迎语
-    /**
-     * {AT}为艾特用户
-     * {username}为用户昵称
-     * {time}为用户签到时间
-     * {<key>}其他绑定值
-     */
     style_welcome_text: string
     style_apiList: {
         key: string
@@ -57,6 +28,8 @@ export const Config: Schema<Config> = Schema.intersect([
         minplusnum: Schema.number().default(1).description('每次签到的最小加分数量'),
         maxplusnum: Schema.number().default(10).description('每次签到最大加分数量'),
         firstplusnum: Schema.number().default(20).description('首次签到的额外加分数量'),
+        captchaType: Schema.union(['none', '科目1']).default('none').description('验证码类型'),
+        captchaProbability: Schema.number().min(0).max(1).default(0.5).step(0.1).description('人机验证触发概率'),
         timezone: Schema.union([
             Schema.const(1).description('东一区（+1）'),
             Schema.const(2).description('东二区（+2）'),
@@ -84,6 +57,7 @@ export const Config: Schema<Config> = Schema.intersect([
             Schema.const(-12).description('西十二区（-12）'),
             Schema.const(0).description('UTC协调世界时（+0）'),
         ]).default(8).description('时区'),
+
     }).description('基础配置'),
     Schema.object({
         style_text: Schema.string().default('签到成功，你获得了{points}积分\n今天是你连续签到的第{consecutive_days}天哦').description('签到成功的文本').role('textarea', { rows: [4,3] }),
