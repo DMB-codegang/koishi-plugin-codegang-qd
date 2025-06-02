@@ -35,7 +35,7 @@ export class Api {
         // 获取连续签到天数
         const consecutiveDays = await time.getConsecutiveDays(userid);
         message = message.replace(/\{user\}/g, username)
-        if(upPoints) message = message.replace(/\{points\}/g, upPoints.toString() || '')
+        if (upPoints) message = message.replace(/\{points\}/g, upPoints.toString() || '')
         message = message.replace(/\{fortune\}/g, (await this.getFortune(userid)))
         message = message.replace(/\{consecutive_days\}/g, consecutiveDays.toString())
         message = message.replace(/\{time\}/g, (new Date()).toLocaleString())
@@ -45,32 +45,36 @@ export class Api {
         const keys = message.match(/{([^}]+)}/g)
         if (keys) {
             for (const key of keys) {
-                const keyName = key.replace(/{|}/g, '')
-                const api = this.cfg.style_apiList.find(api => api.key === keyName)
-                if (!api || key == '{AT}') continue;
-                // 判断是否为http开头，不是就作为普通文本嵌入
-                if (api.url.startsWith('http')) {
-                    if (api.jsonPath == '' || api.jsonPath == undefined || api.jsonPath == null) {
-                        if (api.type === 'image') {
-                            message = message.replace(key, h('img', { src: api.url }).toString())
+                try {
+                    const keyName = key.replace(/{|}/g, '')
+                    const api = this.cfg.style_apiList.find(api => api.key === keyName)
+                    if (!api || key == '{AT}') continue;
+                    // 判断是否为http开头，不是就作为普通文本嵌入
+                    if (api.url.startsWith('http')) {
+                        if (api.jsonPath == '' || api.jsonPath == undefined || api.jsonPath == null) {
+                            if (api.type === 'image') {
+                                message = message.replace(key, h('img', { src: api.url }).toString())
+                            } else {
+                                const response = await this.ctx.http.get(api.url)
+                                message = message.replace(key, response)
+                            }
                         } else {
                             const response = await this.ctx.http.get(api.url)
-                            message = message.replace(key, response)
-                        }
-                    } else {
-                        const response = await this.ctx.http.get(api.url)
-                        const data = typeof response === 'string' ? JSON.parse(response) : response
-                        const value = jsonpath.query(data, api.jsonPath)[0]
-                        if (api.type === 'image') {
-                            message = message.replace(key, h('img', { src: value }).toString())
-                        } else {
-                            message = message.replace(key, value)
+                            const data = typeof response === 'string' ? JSON.parse(response) : response
+                            const value = jsonpath.query(data, api.jsonPath)[0]
+                            if (api.type === 'image') {
+                                message = message.replace(key, h('img', { src: value }).toString())
+                            } else {
+                                message = message.replace(key, value)
+                            }
                         }
                     }
+                } catch (error) {
+                    this.ctx.logger('codegang-qd').error(error);
+                    message = message.replace(key, '获取失败')
                 }
             }
         }
-
         message = message.replace('{AT}', h('at', { id: userid }).toString())
         return message
     }
