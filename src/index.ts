@@ -1,6 +1,5 @@
 import { } from 'koishi-plugin-mail'
 import { } from 'koishi-plugin-pointmint'
-import { } from 'koishi-plugin-puppeteer'
 import { Context } from 'koishi'
 
 import { InitPlugin } from './services/init'
@@ -9,7 +8,7 @@ import { Config } from './config'
 export const name = 'codegang-qd'
 export const description = '一个高度可自定义化的签到插件'
 export const author = '小舍'
-export const inject = ['database', 'http', 'puppeteer', 'points']
+export const inject = ['database', 'http', 'points']
 export const usage = 
 `
 # 签到插件

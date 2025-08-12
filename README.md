@@ -61,5 +61,5 @@
 
 该插件依赖以下服务：
 - point（来自[koishi-plugin-pointmint](https://github.com/DMB-codegang/koishi-plugin-PointMint)，用于给予货币）
-- puppeteer（来自[koishi-plugin-puppeteer](https://github.com/koishijs/koishi-plugin-puppeteer)，用于用户当日运势）
+- puppeteer（来自[koishi-plugin-puppeteer](https://github.com/koishijs/koishi-plugin-puppeteer)，**仅2.1.1及之前版本依赖**，用于用户当日运势）
 - http（来自[@koishijs/plugin-http](https://github.com/cordiverse/http)，用于api调用）
