@@ -4,6 +4,8 @@ import { Config } from '../config'
 import { time } from './timeServer'
 import { UserType } from '../types'
 
+import fortuneData from './fortune_data';
+
 export class Api {
     private static ctx: Context
     private static cfg: Config
@@ -82,30 +84,23 @@ export class Api {
 
     private static async getFortune(userid: string): Promise<string> {
         if (!userid) throw new Error('Invalid parameters');
-        if (!this.ctx.puppeteer) return '';
         userid = (Number(userid) + Number(`${(new Date()).getFullYear()}${(new Date()).getMonth() + 1}${(new Date()).getDate()}`)).toString();
-        this.ctx.puppeteer.config.args = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-features=HttpsFirstBalancedModeAutoEnable']
-        let page;
-        try {
-            page = await this.ctx.puppeteer.browser.newPage()
-            await page.goto(`http://qq.link114.cn/${userid}`);
-            const res = await page.evaluate(() => {
-                const items = Array.from(document.querySelectorAll('#main .listpage_content dl'));
-                return items.map(dl => {
-                    const label = dl.querySelector('dt').textContent.trim().replace('：', '');
-                    const value = dl.querySelector('dd').textContent.trim();
-                    return { label, value };
-                });
-            });
-            return `今日运势：${res[0].value}${res[1].value}\n${res[2].value}\n${res[3].value}`;
-        } catch (error) {
-            this.ctx.logger('codegang-qd').error(error);
-            return `获取运势失败: ${error}`;
-        } finally {
-            if (page) {
-                await page.close();
-            }
+        const res = fortuneData[this.hashToRange(Number(userid))-1]; // 对userid进行哈希，得到1-80的一个数，作为 fortuneData 的索引
+        return `今日运势：${res.运情总结}${res.幸运星}\n${res.签文}\n${res.解签}`;
+    }
+
+    private static hashToRange(num: number) {
+        let hash = 2166136261; // FNV offset basis
+        const bytes = new ArrayBuffer(4);
+        new DataView(bytes).setInt32(0, num, true);
+        const byteArray = new Uint8Array(bytes);
+
+        for (let i = 0; i < byteArray.length; i++) {
+            hash ^= byteArray[i];
+            hash *= 16777619; // FNV prime
         }
+
+        return (Math.abs(hash) % 80) + 1;
     }
 
 }
