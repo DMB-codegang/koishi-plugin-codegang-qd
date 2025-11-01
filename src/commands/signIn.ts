@@ -5,6 +5,7 @@ import { Check } from '../utils/check'
 import { time } from '../utils/timeServer'
 import { name } from '../index'
 import { UserType } from '../types'
+import { randomGain, sdraGain } from '../utils/gain'
 
 // 用于防止重复提交的锁集合
 const lockSet = new Set<string>()
@@ -18,10 +19,10 @@ export function registerSignInCommand(ctx: Context, cfg: Config) {
         const lockKey = `qd:lock:${session.userId}`;
         if (lockSet.has(lockKey)) return;
         lockSet.add(lockKey);
-        
+
         const maxRetries = 3;
         let retryCount = 0;
-        
+
         try {
             while (retryCount <= maxRetries) {
                 try {
@@ -46,39 +47,35 @@ export function registerSignInCommand(ctx: Context, cfg: Config) {
                         }
                     }
 
+                    // 获取用户当前积分
+                    const points = await ctx.points.get(session.userId);
                     // 区分用户是否是新用户，确定需要加多少积分
                     let uppoints: number;
-                    switch (usertype) {
-                        case 'newUser': {
-                            uppoints = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum) + cfg.firstplusnum;
-                            break;
-                        }
-                        case 'notToday': {
-                            uppoints = Math.floor(Math.random() * (cfg.maxplusnum - cfg.minplusnum + 1) + cfg.minplusnum);
-                            break;
-                        }
-                        default: {
-                            await session.send("签到失败: 意料之外的usertype");
-                            return;
+                    if (cfg.rewardStrategyName == 'sdra') {
+                        uppoints = sdraGain(cfg.sdra_maxGain, cfg.sdra_minGain, cfg.sdra_saturationPoint, cfg.sdra_urveFactor, cfg.sdra_randomRange, points);
+                    } else {
+                        uppoints = randomGain(cfg.randoom_maxGain, cfg.randoom_minGain);
+                        if (usertype == 'newUser') {
+                            uppoints += (cfg.randoom_firstGain);
                         }
                     }
 
                     // 添加积分
                     const transaction = ctx.points.generateTransactionId()
-                    const res = await ctx.points.add(session.userId, transaction, uppoints, name);
+                    await ctx.points.add(session.userId, transaction, uppoints, name);
                     await time.updateTime(session.userId); // 更新签到时间
 
                     // 构建签到成功的文本
                     message = h('quote', { id: session.messageId }) + (cfg.isdev ? '【测试模式】' : '') + await Api.buildQDmessage('success', session.userId, session.username, usertype, uppoints);
 
                     await session.send(message);
-                    
+
                     // 成功执行，跳出重试循环
                     return;
-                    
+
                 } catch (error) {
                     retryCount++;
-                    
+
                     if (retryCount > maxRetries) {
                         // 超过最大重试次数，发送错误信息并退出
                         await session.send(`签到失败: 重试${maxRetries}次后仍然失败，请稍后再试。错误信息: ${error.message || error}`);
