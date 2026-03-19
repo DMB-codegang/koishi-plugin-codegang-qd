@@ -1,7 +1,7 @@
 import { Context } from 'koishi'
 import { Config } from '../config'
 import { time } from '../utils/timeServer'
-import { Api } from '../utils/api'
+import { Api } from './api'
 import { registerCommands } from '../commands'
 
 export function InitPlugin(ctx: Context, cfg: Config) {

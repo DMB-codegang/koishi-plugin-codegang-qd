@@ -1,6 +1,6 @@
 import { Context, h } from 'koishi'
 import { Config } from '../config'
-import { Api } from '../utils/api'
+import { Api } from '../services/api'
 import { Check } from '../utils/check'
 import { time } from '../utils/timeServer'
 import { name } from '../index'
