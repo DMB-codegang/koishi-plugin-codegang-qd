@@ -2,23 +2,16 @@
 on: push
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 导入源码
-        uses: actions/checkout@v4
-        
-      - name: 安装Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
 
-      - name: 设置 .npmrc 文件
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc  # 手动配置 .npmrc 文件
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
-      - name: 发布到npm
-        if: success()
-        run: |
-          yarn publish --non-interactive  # 使用 yarn 来发布到 npm
+      - name: Publish to NPM
+        uses: AwesomeHamster/actions-publish@master
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          # 以下为可选参数（有默认值，可按需覆盖）
+          node-version: '20'
+          test: yarn test
+          install-peer: koishi
