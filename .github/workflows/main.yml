@@ -1,17 +1,49 @@
+name: Publish Koishi Plugin
 
-on: push
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # 支持手动触发
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    
+    # 🔑 声明 OIDC 权限（Trusted Publishing 必需）
+    permissions:
+      id-token: write  # 用于与 NPM 交换 OIDC 凭证
+      contents: read   # 用于 checkout 代码
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'  # 或 22+
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup Yarn
+        shell: bash
+        run: |
+          yarn set version stable
+          yarn config set nodeLinker node-modules
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          yarn install
+          yarn add --dev koishi  # 安装对等依赖
+
+      - name: Build
+        shell: bash
+        run: yarn build
+
+      - name: Test
+        shell: bash
+        run: yarn test  # 如果不需要测试，可删除或注释
 
       - name: Publish to NPM
-        uses: AwesomeHamster/actions-publish@master
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          # 以下为可选参数（有默认值，可按需覆盖）
-          node-version: '20'
-          test: yarn test
-          install-peer: koishi
+        shell: bash
+        run: npm publish --provenance --access public
