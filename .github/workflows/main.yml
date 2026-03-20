@@ -32,6 +32,8 @@ jobs:
 
       - name: Install dependencies
         shell: bash
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
         run: |
           yarn install
           yarn add --dev koishi  # 安装对等依赖
