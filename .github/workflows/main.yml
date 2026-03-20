@@ -1,3 +1,4 @@
+# .github/workflows/publish.yml
 name: Publish Koishi Plugin
 
 on:
@@ -9,43 +10,46 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     
-    # 🔑 声明 OIDC 权限（Trusted Publishing 必需）
+    # 🔑 Trusted Publishing 必需的权限
     permissions:
-      id-token: write  # 用于与 NPM 交换 OIDC 凭证
-      contents: read   # 用于 checkout 代码
+      id-token: write
+      contents: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 1. 设置 Node.js（同原始 Action）
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'  # 或 22+
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'  # ← 新增：指定 NPM 注册表
 
-      - name: Setup Yarn
+      # 2. 配置 Yarn（同原始 Action）
+      - name: Upgrade yarn
         shell: bash
         run: |
           yarn set version stable
           yarn config set nodeLinker node-modules
 
+      # 3. 安装依赖（同原始 Action + 环境变量）
       - name: Install dependencies
         shell: bash
         env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+          YARN_ENABLE_IMMUTABLE_INSTALLS: "false"  # ← 允许修改 lockfile
         run: |
           yarn install
-          yarn add --dev koishi  # 安装对等依赖
+          yarn add --dev koishi  # ← 安装对等依赖
 
+      # 4. 构建（同原始 Action）
       - name: Build
         shell: bash
         run: yarn build
 
+      # 5. 测试（同原始 Action，可自定义）
       - name: Test
         shell: bash
-        run: yarn test  # 如果不需要测试，可删除或注释
+        run: yarn test  # ← 可改为其他测试命令
 
+      # 6. 发布到 NPM
       - name: Publish to NPM
         shell: bash
         run: npm publish --provenance --access public
+        # ✅ 无需 token！NPM 通过 OIDC 自动认证
